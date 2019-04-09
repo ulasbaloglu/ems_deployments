@@ -19,11 +19,6 @@ def staging(ctx):
 	servertasks(ctx)
 
 @task
-def test(ctx):
-	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
-		conn.sudo('ls -al')
-
-@task
 def servertasks(ctx):
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		conn.sudo('apt-get update')
