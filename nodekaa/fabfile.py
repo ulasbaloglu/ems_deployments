@@ -1,5 +1,6 @@
 import os
 import configparser
+import sys
 from fabric import task, Connection
 
 CONFIG_FILE = "kaa.cfg"
@@ -156,14 +157,38 @@ def configurekaaserver(ctx):
 		conn.sudo('ufw allow from any to any port 9997 proto tcp')
 		conn.sudo('iptables -I INPUT -p tcp -m tcp --dport 9999 -j ACCEPT')
 		conn.sudo('ufw allow from any to any port 9999 proto tcp')
-		conn.run('echo persistent installation')
+		conn.run('printf \"persistent installation\n\"')
 		conn.sudo('echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections')
 		conn.sudo('echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections')
 		conn.sudo('apt-get install -y iptables-persistent')
-		conn.run('echo starting persistent')
+		conn.run('printf \"starting persistent\n\"')
 		conn.sudo('service netfilter-persistent start')
 		conn.sudo('netfilter-persistent save')
-		conn.run('echo starting kaa node')
+		restorekaaserver(ctx)
+
+@task
+def restorekaaserver(ctx):
+	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
+		sys.stdout.write("Would you like to restore kaa server from sql dump file? (y/n): ")
+		choice = input().lower()
+		yes = {'yes','y', 'ye', ''}
+		no = {'no','n'}
+		if choice in yes:
+			conn.put(config._sections['node_kaa']['kaa_dumpfile'])
+			conn.sudo('mysql -uroot -p' + config._sections['node_kaa']['sql_password']\
+			 + ' kaa < ' + config._sections['node_kaa']['kaa_dumpfile'])
+			conn.sudo('rm ' + config._sections['node_kaa']['kaa_dumpfile'])
+			startkaaserver(ctx)
+		elif choice in no:
+   			startkaaserver(ctx)
+		else:
+   			sys.stdout.write("Please respond with 'yes' or 'no'")
+   			restorekaaserver(ctx)
+
+@task
+def startkaaserver(ctx):
+	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:		
+		conn.run('printf \"starting kaa node\n\"')
 		conn.sudo('service kaa-node start')
 		conn.run('printf \"*** Kaa node configured ***\n\"')
 		conn.run('printf \"*** Node deployment finished ***\n\"')
