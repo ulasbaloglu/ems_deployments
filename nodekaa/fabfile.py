@@ -76,7 +76,7 @@ def securemariadb(ctx):
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Securing MYSQL installation\n")
-		sys.stdout.write("*** Root password remains UNCHANGED here, you can do it later in server console\n")
+		sys.stdout.write("*** Root password remains UNCHANGED here, you can change it later in server console\n")
 		sys.stdout.write("*** Removing anonymous users, removing test database and reloading privilage tables\n")
 		sys.stdout.write("****************************\n")
 		conn.sudo('sleep 6')
