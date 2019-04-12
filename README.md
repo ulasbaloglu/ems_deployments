@@ -13,4 +13,10 @@ update `kaadumpfile` field of `kaa.cfg` , and during installation answer "Y" to 
 For Ubuntu 18.04
 
 ## Configuration
-- Rename `nodekafka/kafka-template.cfg` as `kafka.cfg` and update with your server settings.<BR/>
+- Rename `nodekafka/kafka-template.cfg` as `kafka.cfg` and update with your settings.<BR/>
+
+# TIMESCALEDB NODE INSTALLATION
+For Ubuntu 18.04
+
+## Configuration
+- Rename `nodetimescaledb/timescaledb-template.cfg` as `timescaledb.cfg` and update with your settings.<BR/>
