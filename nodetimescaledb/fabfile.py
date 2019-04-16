@@ -9,10 +9,18 @@ config.read(CONFIG_FILE)
 
 @task
 def start(ctx):
+	'''
+	Complete full installation at once
+	:return:
+	'''
 	staging(ctx)
 
 @task
 def staging(ctx):
+	'''
+	Setting up host credentials
+	:return:
+	'''
 	ctx.name = 'staging'
 	ctx.user = config._sections['node_timescaledb']['user']
 	ctx.connect_kwargs = {"key_filename":[config._sections['node_timescaledb']['keyfile']]}
@@ -21,6 +29,10 @@ def staging(ctx):
 
 @task
 def servertasks(ctx):
+	'''
+	Prepare the node, install updates
+	:return:
+	'''
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Starting Preperation of the Server\n")
@@ -35,6 +47,10 @@ def servertasks(ctx):
 
 @task
 def installpostgresql(ctx):
+	'''
+	Install PostgreSQL 11
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Installing PostgreSQL 11\n")
@@ -53,6 +69,10 @@ def installpostgresql(ctx):
 
 @task
 def installtimescaledb(ctx):
+	'''
+	Install TimescaleDB 1.2.2
+	:return:
+	'''
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Installing TimescaleDB 1.2.2\n")
@@ -66,6 +86,10 @@ def installtimescaledb(ctx):
 
 @task
 def setupiptables(ctx):
+	'''
+	Setup IP Tables open ports for outside access
+	:return:
+	'''
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		conn.sudo('iptables -I INPUT -p tcp -m tcp --dport 22 -j ACCEPT')
 		conn.sudo('ufw allow from any to any port 22 proto tcp')
@@ -89,4 +113,5 @@ def setupiptables(ctx):
 		sys.stdout.write("*** Under (# IPv4 local connections:) insert allowed IP addresses such as \n")
 		sys.stdout.write("*** host    all             all             10.0.3.2/32            md5\n")
 		sys.stdout.write("*** host    all             all             0.0.0.0/0            md5\n")
+
 
