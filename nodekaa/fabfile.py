@@ -9,18 +9,30 @@ config.read(CONFIG_FILE)
 
 @task
 def start(ctx):
+	'''
+	Complete full installation at once
+	:return:
+	'''
 	staging(ctx)
 
 @task
 def staging(ctx):
+	'''
+	Setting up host credentials
+	:return:
+	'''
 	ctx.name = 'staging'
 	ctx.user = config._sections['node_kaa']['user']
 	ctx.connect_kwargs = {"key_filename":[config._sections['node_kaa']['keyfile']]}
 	ctx.host = config._sections['node_kaa']['host'] + ':' + config._sections['node_kaa']['port']
 	servertasks(ctx)
-	
+
 @task
 def servertasks(ctx):
+	'''
+	Prepare the node, install updates
+	:return:
+	'''
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Starting Preperation of the Server\n")
@@ -35,6 +47,10 @@ def servertasks(ctx):
 
 @task
 def installjava(ctx):
+	'''
+	Install Oracle JDK 8
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Installing Oracle JDK 8\n")
@@ -49,6 +65,10 @@ def installjava(ctx):
 
 @task
 def installmariadb(ctx):
+	'''
+	Install MariaDB 10.3
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** MariaDB 10.3\n")
@@ -68,6 +88,10 @@ def installmariadb(ctx):
 
 @task
 def securemariadb(ctx):
+	'''
+	Secure MariaDB Installation
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Securing MYSQL installation\n")
@@ -83,6 +107,10 @@ def securemariadb(ctx):
 
 @task
 def createtables(ctx):
+	'''
+	Create SQL Tables for Kaa
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Creation of SQL Tables for Kaa\n")
@@ -96,9 +124,13 @@ def createtables(ctx):
 
 @task
 def installzookeeper(ctx):
+	'''
+	Install Apache Zookeeper
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
-		sys.stdout.write("*** Installing Zookeper\n")
+		sys.stdout.write("*** Installing Zookeeper\n")
 		sys.stdout.write("****************************\n")
 		conn.sudo('apt-get -y install zookeeper')
 		conn.sudo('/usr/share/zookeeper/bin/zkServer.sh start')
@@ -109,6 +141,10 @@ def installzookeeper(ctx):
 
 @task
 def installmongodb(ctx):
+	'''
+	Install MongoDB
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Installing MongoDB\n")
@@ -125,6 +161,10 @@ def installmongodb(ctx):
 
 @task
 def installkaaserver(ctx):
+	'''
+	Install Kaa Node
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Installing Kaa Node\n")
@@ -146,6 +186,10 @@ def installkaaserver(ctx):
 
 @task
 def configurekaaserver(ctx):
+	'''
+	Configure Kaa Node
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Configuring Kaa Node\n")
@@ -175,6 +219,10 @@ def configurekaaserver(ctx):
 
 @task
 def restorekaaserver(ctx):
+	'''
+	Restore Kaa server from dump file
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("Would you like to restore kaa server from sql dump file? (y/n): ")
 		choice = input().lower()
@@ -194,6 +242,10 @@ def restorekaaserver(ctx):
 
 @task
 def startkaaserver(ctx):
+	'''
+	Start Kaa server
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		conn.sudo('rm /var/lib/apt/lists/lock')
 		conn.sudo('rm /var/cache/apt/archives/lock')
