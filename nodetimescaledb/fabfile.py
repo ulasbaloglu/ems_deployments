@@ -14,6 +14,11 @@ def deploy(ctx):
 	:return:
 	'''
 	staging(ctx)
+	servertasks(ctx)
+	installpostgresql(ctx)
+	installtimescaledb(ctx)
+	setupiptables(ctx)
+	finishdeployment(ctx)
 
 @task
 def staging(ctx):
@@ -25,7 +30,6 @@ def staging(ctx):
 	ctx.user = config._sections['node_timescaledb']['user']
 	ctx.connect_kwargs = {"key_filename":[config._sections['node_timescaledb']['keyfile']]}
 	ctx.host = config._sections['node_timescaledb']['host'] + ':' + config._sections['node_timescaledb']['port']
-	servertasks(ctx)
 
 @task
 def servertasks(ctx):
@@ -43,7 +47,6 @@ def servertasks(ctx):
 		conn.sudo('apt-get install -y wget ca-certificates curl')
 		conn.sudo('rm -vf /var/lib/dpkg/lock_backup')
 		sys.stdout.write("*** Server prepared ***\n\n")
-		installpostgresql(ctx)
 
 @task
 def installpostgresql(ctx):
@@ -65,7 +68,6 @@ def installpostgresql(ctx):
 		sys.stdout.write("***Changing postgres password \n")
 		conn.sudo('-u postgres psql -U postgres -d postgres -c "alter user postgres with password \''\
 		 + config._sections['node_timescaledb']['postgres_password'] + '\';"')
-		installtimescaledb(ctx)
 
 @task
 def installtimescaledb(ctx):
@@ -82,7 +84,6 @@ def installtimescaledb(ctx):
 		conn.sudo('apt install -y timescaledb-postgresql-11')
 		conn.sudo('timescaledb-tune --quiet --yes')
 		conn.sudo('service postgresql restart')
-		setupiptables(ctx)
 
 @task
 def setupiptables(ctx):
@@ -102,6 +103,14 @@ def setupiptables(ctx):
 		sys.stdout.write("starting persistent\n")
 		conn.sudo('service netfilter-persistent start')
 		conn.sudo('netfilter-persistent save')
+
+@task
+def finishdeployment(ctx):
+	'''
+	Final tasks for the deployment
+	:return:
+	'''
+	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		conn.sudo('rm /var/lib/apt/lists/lock')
 		conn.sudo('rm /var/cache/apt/archives/lock')
 		conn.sudo('rm /var/lib/dpkg/lock')
@@ -113,5 +122,4 @@ def setupiptables(ctx):
 		sys.stdout.write("*** Under (# IPv4 local connections:) insert allowed IP addresses such as \n")
 		sys.stdout.write("*** host    all             all             10.0.3.2/32            md5\n")
 		sys.stdout.write("*** host    all             all             0.0.0.0/0            md5\n")
-
 
