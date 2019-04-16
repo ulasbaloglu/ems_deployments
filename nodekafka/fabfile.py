@@ -14,6 +14,15 @@ def deploy(ctx):
 	:return:
 	'''
 	staging(ctx)
+	servertasks(ctx)
+	installkafka(ctx)
+	installzookeeper(ctx)
+	installjava(ctx)
+	startkafka(ctx)
+	installkafkat(ctx)
+	setupiptables(ctx)
+	finishdeployment(ctx)
+
 
 @task
 def staging(ctx):
@@ -25,12 +34,6 @@ def staging(ctx):
 	ctx.user = config._sections['node_kafka']['user']
 	ctx.connect_kwargs = {"key_filename":[config._sections['node_kafka']['keyfile']]}
 	ctx.host = config._sections['node_kafka']['host'] + ':' + config._sections['node_kafka']['port']
-	servertasks(ctx)
-
-#@task
-#def test(ctx):
-#	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
-#		conn.sudo('ls -al')
 
 @task
 def servertasks(ctx):
@@ -48,7 +51,6 @@ def servertasks(ctx):
 		conn.sudo('apt-get install -y wget ca-certificates curl')
 		conn.sudo('rm -vf /var/lib/dpkg/lock_backup')
 		sys.stdout.write("*** Server prepared ***\n\n")
-		installkafka(ctx)
 
 @task
 def installkafka(ctx):
@@ -73,7 +75,6 @@ def installkafka(ctx):
 		conn.sudo('su -l kafka -c "sed -i  \'$ a delete.topic.enable = true\' ~/kafka/config/server.properties"')
 		conn.put(config._sections['node_kafka']['kafka_servicefile'])
 		conn.sudo('cp ' + config._sections['node_kafka']['kafka_servicefile'] + ' /etc/systemd/system/kafka.service')
-		installzookeeper(ctx)
 
 @task
 def installzookeeper(ctx):
@@ -93,8 +94,7 @@ def installzookeeper(ctx):
 		sys.stdout.write("*** Zookeper installed ***\n\n")
 		conn.run('netstat -ntlp | grep 2181')
 		conn.sudo('rm ' + config._sections['node_kafka']['kafka_servicefile'])
-		conn.sudo('rm ' + config._sections['node_kafka']['zookeeper_servicefile'])
-		installjava(ctx)	
+		conn.sudo('rm ' + config._sections['node_kafka']['zookeeper_servicefile'])	
 		
 @task
 def installjava(ctx):
@@ -112,7 +112,6 @@ def installjava(ctx):
 		conn.sudo('echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections')
 		conn.sudo('apt-get install -y oracle-java8-installer')
 		sys.stdout.write("*** Oracle JDK 8 installed ***\n\n")
-		startkafka(ctx)
 
 @task
 def startkafka(ctx):
@@ -126,7 +125,6 @@ def startkafka(ctx):
 		conn.sudo('sleep 10')
 		conn.sudo('journalctl -u kafka')
 		conn.sudo('systemctl enable kafka')
-		installkafkat(ctx)
 
 @task
 def installkafkat(ctx):
@@ -180,9 +178,18 @@ def setupiptables(ctx):
 		sys.stdout.write("starting persistent\n")
 		conn.sudo('service netfilter-persistent start')
 		conn.sudo('netfilter-persistent save')
+
+@task
+def finishdeployment(ctx):
+	'''
+	Final tasks for the deployment
+	:return:
+	'''
+	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		conn.sudo('rm /var/lib/apt/lists/lock')
 		conn.sudo('rm /var/cache/apt/archives/lock')
 		conn.sudo('rm /var/lib/dpkg/lock')
 		conn.sudo('dpkg --configure -a')
 		sys.stdout.write("*** Kafka node successfully installed ***\n")
 		sys.stdout.write("*** Node deployment finished ***\n")
+
