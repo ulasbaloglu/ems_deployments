@@ -9,18 +9,35 @@ config.read(CONFIG_FILE)
 
 @task
 def start(ctx):
+	'''
+	Complete full installation at once
+	:return:
+	'''
 	staging(ctx)
 
 @task
 def staging(ctx):
+	'''
+	Setting up host credentials
+	:return:
+	'''
 	ctx.name = 'staging'
 	ctx.user = config._sections['node_kafka']['user']
 	ctx.connect_kwargs = {"key_filename":[config._sections['node_kafka']['keyfile']]}
 	ctx.host = config._sections['node_kafka']['host'] + ':' + config._sections['node_kafka']['port']
 	servertasks(ctx)
-	
+
+#@task
+#def test(ctx):
+#	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
+#		conn.sudo('ls -al')
+
 @task
 def servertasks(ctx):
+	'''
+	Prepare the node, install updates
+	:return:
+	'''
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Starting Preperation of the Server\n")
@@ -35,6 +52,10 @@ def servertasks(ctx):
 
 @task
 def installkafka(ctx):
+	'''
+	Install Kafka 2.12-2.1.1
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Installing Kafka 2.12-2.1.1\n")
@@ -56,9 +77,13 @@ def installkafka(ctx):
 
 @task
 def installzookeeper(ctx):
+	'''
+	Install Apache Zookeeper
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
-		sys.stdout.write("*** Installing Zookeper\n")
+		sys.stdout.write("*** Installing Zookeeper\n")
 		sys.stdout.write("****************************\n")
 		conn.sudo('apt-get -y install zookeeper')
 		conn.put(config._sections['node_kafka']['zookeeper_servicefile'])
@@ -73,6 +98,10 @@ def installzookeeper(ctx):
 		
 @task
 def installjava(ctx):
+	'''
+	Install Oracle JDK 8
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Installing Oracle JDK 8\n")
@@ -87,6 +116,10 @@ def installjava(ctx):
 
 @task
 def startkafka(ctx):
+	'''
+	Start Kafka node
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("starting kafka node\n")
 		conn.sudo('systemctl start kafka')
@@ -97,6 +130,10 @@ def startkafka(ctx):
 
 @task
 def installkafkat(ctx):
+	'''
+	Install KafkaT (Optional)
+	:return:
+	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
 		sys.stdout.write("*** Installing KafkaT\n")
@@ -121,6 +158,10 @@ def installkafkat(ctx):
 
 @task
 def setupiptables(ctx):
+	'''
+	Setup IP Tables open ports for outside access
+	:return:
+	'''
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		conn.sudo('iptables -I INPUT -p tcp -m tcp --dport 22 -j ACCEPT')
 		conn.sudo('ufw allow from any to any port 22 proto tcp')
@@ -145,4 +186,3 @@ def setupiptables(ctx):
 		conn.sudo('dpkg --configure -a')
 		sys.stdout.write("*** Kafka node successfully installed ***\n")
 		sys.stdout.write("*** Node deployment finished ***\n")
-
