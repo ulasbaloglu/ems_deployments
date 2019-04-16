@@ -8,9 +8,9 @@ config = configparser.RawConfigParser()
 config.read(CONFIG_FILE)
 
 @task
-def start(ctx):
+def deploy(ctx):
 	'''
-	Complete full installation at once
+	Execute full tasks at once
 	:return:
 	'''
 	staging(ctx)
