@@ -15,9 +15,9 @@ def deploy(ctx):
 	'''
 	staging(ctx)
 	servertasks(ctx)
+	installjava(ctx)
 	installkafka(ctx)
 	installzookeeper(ctx)
-	installjava(ctx)
 	startkafka(ctx)
 	installkafkat(ctx)
 	setupiptables(ctx)
@@ -35,6 +35,11 @@ def staging(ctx):
 	ctx.connect_kwargs = {"key_filename":[config._sections['node_kafka']['keyfile']]}
 	ctx.host = config._sections['node_kafka']['host'] + ':' + config._sections['node_kafka']['port']
 
+#@task
+#def test(ctx):
+#	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
+#		conn.sudo('ls -al')
+
 @task
 def servertasks(ctx):
 	'''
@@ -51,6 +56,18 @@ def servertasks(ctx):
 		conn.sudo('apt-get install -y wget ca-certificates curl')
 		conn.sudo('rm -vf /var/lib/dpkg/lock_backup')
 		sys.stdout.write("*** Server prepared ***\n\n")
+
+@task
+def installjava(ctx):
+	'''
+	Install OpenJDK 8
+	:return:
+	'''	
+	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
+		sys.stdout.write("****************************\n")
+		sys.stdout.write("*** Installing OpenJDK 8\n")
+		sys.stdout.write("****************************\n")
+		conn.sudo('apt install -y openjdk-8-jdk')
 
 @task
 def installkafka(ctx):
@@ -95,23 +112,6 @@ def installzookeeper(ctx):
 		conn.run('netstat -ntlp | grep 2181')
 		conn.sudo('rm ' + config._sections['node_kafka']['kafka_servicefile'])
 		conn.sudo('rm ' + config._sections['node_kafka']['zookeeper_servicefile'])	
-		
-@task
-def installjava(ctx):
-	'''
-	Install Oracle JDK 8
-	:return:
-	'''	
-	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
-		sys.stdout.write("****************************\n")
-		sys.stdout.write("*** Installing Oracle JDK 8\n")
-		sys.stdout.write("****************************\n")
-		conn.sudo('add-apt-repository ppa:webupd8team/java')
-		conn.sudo('apt-get update')
-		conn.sudo('echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections')
-		conn.sudo('echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections')
-		conn.sudo('apt-get install -y oracle-java8-installer')
-		sys.stdout.write("*** Oracle JDK 8 installed ***\n\n")
 
 @task
 def startkafka(ctx):
