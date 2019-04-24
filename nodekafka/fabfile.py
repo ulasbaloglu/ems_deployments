@@ -35,11 +35,6 @@ def staging(ctx):
 	ctx.connect_kwargs = {"key_filename":[config._sections['node_kafka']['keyfile']]}
 	ctx.host = config._sections['node_kafka']['host'] + ':' + config._sections['node_kafka']['port']
 
-#@task
-#def test(ctx):
-#	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
-#		conn.sudo('ls -al')
-
 @task
 def servertasks(ctx):
 	'''
