@@ -57,19 +57,14 @@ def servertasks(ctx):
 @task
 def installjava(ctx):
 	'''
-	Install Oracle JDK 8
+	Install OpenJDK 8
 	:return:
 	'''	
 	with Connection(ctx.host, ctx.user, connect_kwargs=ctx.connect_kwargs) as conn:
 		sys.stdout.write("****************************\n")
-		sys.stdout.write("*** Installing Oracle JDK 8\n")
+		sys.stdout.write("*** Installing OpenJDK 8\n")
 		sys.stdout.write("****************************\n")
-		conn.sudo('add-apt-repository ppa:webupd8team/java')
-		conn.sudo('apt-get update')
-		conn.sudo('echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections')
-		conn.sudo('echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections')
-		conn.sudo('apt-get install -y oracle-java8-installer')
-		sys.stdout.write("*** Oracle JDK 8 installed ***\n\n")
+		conn.sudo('apt install -y openjdk-8-jdk')
 
 @task
 def installmariadb(ctx):
