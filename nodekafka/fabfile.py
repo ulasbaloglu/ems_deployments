@@ -22,8 +22,7 @@ def deploy(ctx):
 	installkafkat(ctx)
 	setupiptables(ctx)
 	finishdeployment(ctx)
-
-
+	
 @task
 def staging(ctx):
 	'''
